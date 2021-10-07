@@ -5,15 +5,10 @@ library(ggplot2)
 library(ggalt)
 library(ggforce)
 library(ggcorrplot)
-install.packages("ggthemes")
 library(ggthemes)
 
 
-install.packages("devtools")
 library(devtools)
-
-devtools::install_github("vguillemot/csvd")
-library(csvd)
 
 devtools::install_github("HerveAbdi/data4PCCAR")
 library(data4PCCAR)
@@ -23,6 +18,13 @@ library(rCUR)
 
 ##################################################################################
 #################                  EXAMPLE 1               #######################
+
+#Set working directory -> dataset
+#Read osiq data (example 1)
+
+imagery.data<-read.table("osiq.txt", sep=" ")
+head(imagery.data)
+class(imagery.data)
 
 #Data
 dim(imagery.data)
@@ -61,22 +63,32 @@ hj.res2$corrplot
 colors<-c(rep("darkolivegreen",71),rep("firebrick2",74),rep("dodgerblue1",71))
 clasification<-c(rep("Control", 71), rep("CLL", 74), rep("ALL", 71))
 
-#Read "data216.2000" or execute the following code (CUR Decomposition):  
+#Read "data216.2000" (variable selection: CUR Decomposition):  
 
-  cur.res<-rCUR::CUR(data216.global,c=(dim(data216.global)[2]-1),k=2,method="top.scores",weighted = T)
-  plotLeverage(cur.res)
-  variables.cur=2000
-  data216.2000<-data216.global[,cur.res@C.index[1:variables.cur]]
+  # cur.res<-rCUR::CUR(data216.global,c=(dim(data216.global)[2]-1),k=2,method="top.scores",weighted = T)
+  # plotLeverage(cur.res)
+  # variables.cur=2000
+  # data216.2000<-data216.global[,cur.res@C.index[1:variables.cur]]
 
-  # install.packages("dCUR")
-  # library(dCUR) #Another function to execute the CUR decomposition is CUR (method=sample_cur) from the dCUR library.
+    ## install.packages("dCUR")
+    ## library(dCUR) #Another function to execute the CUR decomposition is CUR (method=sample_cur) from the dCUR library.
   
-  
+##Set working directory -> dataset
+##Read data216_2000 (example 2)
 #Data
-dim(data216.2000) #216 observations and 2000 variables
-colnames(data216.2000)
+  
+  data216.2000<-read.csv("data216_2000.csv", header=T)
+  row.names(data216.2000)<-data216.2000[,1]
+  data216.2000<-data216.2000[,-1]
+  
+  dim(data216.2000) #216 observations and 2000 variables
+  colnames(data216.2000)
 
-#Classic PCA
+#Read info_samples
+library(readxl)
+info_216samples <- read_excel("info_216samples.xlsx")
+
+#PCA
 pca.res<-prcomp(data216.2000)
   (pca.res$sdev[1])^2/sum(pca.res$sdev^2)
   (pca.res$sdev[2])^2/sum(pca.res$sdev^2)
@@ -86,13 +98,13 @@ scores.pca<-data.frame(as.data.frame(pca.res$x[,1:2]), clasification)
 ggplot(scores.pca, aes(x = PC1, y = PC2,
                      shape = clasification, 
                      color = clasification, fill=clasification)) +
+  theme_bw()+
+  theme(panel.background = element_blank(),
+        panel.grid.minor = element_blank())+
     geom_encircle(expand=0.02,alpha=0.2)+
-    scale_fill_manual(values = c("#0E93DC","#F03D5D", "#5AB447"))+
-    scale_color_manual(values = c("#0E93DC","#F03D5D", "#5AB447"))+
-    geom_point(size=3, alpha = 0.8)+  
-    theme_bw()+
-    theme(panel.background = element_blank(),
-          panel.grid.minor = element_blank()) 
+  scale_fill_manual(values = c("#0E93DC","#F03D5D", "#5AB447"))+
+  scale_color_manual(values = c("#0E93DC","#F03D5D", "#5AB447"))+
+  geom_point(size=3, alpha = 0.8) 
 
 
 #Loadings: 
@@ -151,12 +163,12 @@ pca.enet.res$Variance
   ggplot(scores.enet, aes(x = PC1, y = PC2,
                      shape = clasification, 
                      color = clasification, fill=clasification)) +
+    theme_bw()+
     geom_encircle(expand=0.025,  alpha=0.2)+
     scale_fill_manual(values = c("#0E93DC","#F03D5D", "#5AB447"))+
     xlab("CenetPC1")+ylab("CenetPC2")+
     geom_point(size=3, alpha = 0.8)+
-    scale_color_manual(values = c("#0E93DC","#F03D5D", "#5AB447"))+
-    theme_bw()
+    scale_color_manual(values = c("#0E93DC","#F03D5D", "#5AB447"))
 
 
 #Loading plots: 
